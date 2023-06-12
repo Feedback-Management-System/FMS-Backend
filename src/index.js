@@ -13,8 +13,6 @@ const cors = require("cors");
 //     optionsSuccessStatus: 200 
 // }));
 
-app.use(cors());
-
 // Server hardware information
 const si = require('systeminformation');
 si.cpu().then(data => {
@@ -35,9 +33,9 @@ const {
 } = require("./routes");
 
 app.use(express.json());
+app.use(cors());
 // app.use(express.urlencoded({extended: true}));
 
-app.set('trust proxy', true);
 app.use(apiLimiter);
 
 app.use("/users", userRouter);

@@ -8,8 +8,9 @@ const apiLimiter = rateLimit({
 
 const loginRateLimiter = rateLimit({
   windowMs: 10 * 60 * 1000, // 10 min in milliseconds
-  max: 20,
+  max: 30,
   message: 'Login error, you have reached maximum retries. Please try again after 10 minutes',
+  requestWasSuccessful: (req, res) => response.statusCode < 400,
   statusCode: 429,
   headers: true,
 });

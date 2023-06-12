@@ -4,7 +4,16 @@ require('dotenv');
 const { forgotPassword } = require("./controllers/userController");
 const port = process.env.PORT || 5000;
 
-const { apiLimiter } = require('./middlewares')
+const { apiLimiter } = require('./middlewares');
+
+// cors management
+const cors = require("cors");
+// app.options("*", cors({ 
+//     origin: ["http://localhost:3000", "https://acquired-winter-369109.firebaseapp.com"], 
+//     optionsSuccessStatus: 200 
+// }));
+
+app.use(cors());
 
 // Server hardware information
 const si = require('systeminformation');
@@ -15,14 +24,6 @@ si.cpu().then(data => {
     console.log('Speed: ' + data.speed);
 }).catch(error => console.error(error));
 
-// cors management
-const cors = require("cors");
-// app.options("*", cors({ 
-//     origin: ["http://localhost:3000", "https://acquired-winter-369109.firebaseapp.com"], 
-//     optionsSuccessStatus: 200 
-// }));
-
-app.use(cors());
 
 // mongo
 require('../config/db');

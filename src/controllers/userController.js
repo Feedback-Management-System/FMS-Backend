@@ -21,7 +21,6 @@ const randomstring = require("randomstring");
 
 const signup = async (req, res) => {
     let { username, email, password } = req.body;
-    let ip = req.ip;
     if (username == "" || email == "" || password == "" || !username || !email || !password) {
         res.status(400).json({
           status: "FAILED",
@@ -49,21 +48,21 @@ const signup = async (req, res) => {
             if(existingUser) {
                 return res.status(400).json({ message: "A user with the provided email already exists!" });
             }
-            let hashedIp;
+            // let hashedIp;
 
-            console.log(`Account created from : ${ip}`);
+            // console.log(`Account created from : ${ip}`);
 
             // hash password
-            const saltRounds = 10;
-            hashedIp = await bcrypt.hash(ip, saltRounds);
-            const hashedPassword = await bcrypt.hash(password, saltRounds);
+            // const saltRounds = 10;
+            // hashedIp = await bcrypt.hash(ip, saltRounds);
+            // const hashedPassword = await bcrypt.hash(password, saltRounds);
             
             // user creation
             const result = await userModel.create({
                 username,
                 email,
                 password: hashedPassword,
-                ipAddress: hashedIp ? hashedIp : NULL
+                // ipAddress: hashedIp ? hashedIp : NULL
             })
     
             // generate token
@@ -78,26 +77,55 @@ const signup = async (req, res) => {
 };
 
 const signin = async (req, res) => {
-    const { email, password } = req.body;
-    if(!email || !password)
-        return res.status(400).send({message: "Email and password required" });
+    const { email } = req.body;
+    if(!email) 
+        return res.status(400).send({message: "Email required" });
     try {
         // check for existing user
         const existingUser = await userModel.findOne({ email: email })
         if(!existingUser) {
-            return res.status(404).json({ message: "User doesn't exist!" });
+            if (email == "" || !email) {
+                res.status(400).json({
+                status: "FAILED",
+                message: "Empty fields are unacceptable!",
+            });
+            } else if (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
+                res.json({
+                status: "FAILED",
+                message: "Invalid Email!",
+                });
+            } 
+            else {
+                let username = email.split("@")[0];
+                try {
+                    // user creation
+                    const result = await userModel.create({
+                        username,
+                        email
+                    })
+            
+                    // generate token
+                    const token = jwt.sign({ email: result.email, id: result._id }, SECRET_KEY);
+            
+                    // send response 
+                     return res.status(201).json({ user: result, token });
+                } catch (err) {
+                    return res.status(500).json({ message: `Something went wrong! ${err}` });
+                }
+            }
+            // return res.status(404).json({ message: "User doesn't exist!" });
         }
 
         // hash and compare passwords
-        const matchPassword = await bcrypt.compare(password, existingUser.password);
-        if(!matchPassword) {
-            return res.status(400).json({ message: "Invalid credentials!" })
-        }
+        // const matchPassword = await bcrypt.compare(password, existingUser.password);
+        // if(!matchPassword) {
+        //     return res.status(400).json({ message: "Invalid credentials!" })
+        // }
 
-        const matchIp = await bcrypt.compare(req.ip, existingUser.ipAddress);
-        if(!matchIp) {
-            console.log(`User: ${existingUser.username} logged in from a different IP address`);
-        }
+        // const matchIp = await bcrypt.compare(req.ip, existingUser.ipAddress);
+        // if(!matchIp) {
+        //     console.log(`User: ${existingUser.username} logged in from a different IP address`);
+        // }
 
         // generate token
         const token = jwt.sign({ email: existingUser.email, id: existingUser._id }, SECRET_KEY);

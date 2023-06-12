@@ -7,7 +7,8 @@ const {
     createFeedback 
 } = require("../controllers");
 const userRouter = express.Router();
-const { auth, 
+const { 
+    auth, 
     loginRateLimiter, 
     feedbackRequestsLimiter 
 } = require("../middlewares");
